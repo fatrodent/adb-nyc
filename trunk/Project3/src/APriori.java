@@ -1,11 +1,13 @@
 /**
- *  APriori Implementation
+ *  A-Priori Implementation
  *  
  *  COMS E6111 - Project 3  04/29/2011
  *  
  *  @author Nicole Lee (ncl2108)
  *  @author Laima Tazmin (lt2233)
  */
+
+import java.io.IOException;
 
 public class APriori {
 
@@ -17,14 +19,38 @@ public class APriori {
 		if (args.length != 3)
 			usage("Invalid Arguments");
 
-		String dataSetFile = args[0]; // (i.e. INTEGRATED-DATASET.csv)
-		float minSupport  = Float.parseFloat(args[1]);
-		float minConfidence = Float.parseFloat(args[2]);
+		int i = 0; // process each argument, starting from 0th
 		
-		APrioriItemSet set = new APrioriItemSet(dataSetFile, minSupport, minConfidence);
+		String dataSetFile = args[i++]; // (i.e. INTEGRATED-DATASET.csv)
 		
-//		set.toOutputFile();
+		float minSupport = 0;
+	    try {
+			minSupport  = Float.parseFloat(args[i++]);
+	    } catch (NumberFormatException e) {
+	        System.err.println("Invalid value for min_sup: " + e.getMessage());
+	        System.exit(1);
+	    }
+	    
+		float minConfidence = 0;
+	    try {
+	    	minConfidence = Float.parseFloat(args[i++]);
+	    } catch (NumberFormatException e) {
+	        System.err.println("Invalid value for min_sup: " + e.getMessage());
+	        System.exit(1);
+	    }
 
+		System.out.println("DEBUG: data set = " + dataSetFile);
+		System.out.println("DEBUG: min_sup  = " + minSupport);
+		System.out.println("DEBUG: min_conf = " + minConfidence);
+	    
+		APrioriImpl apriori = new APrioriImpl(dataSetFile, minSupport, minConfidence);
+		try {
+			apriori.run();
+		} catch (IOException e) {
+			// This comes from error reading the CSV file...
+			System.err.println("IO Error: " + e.getMessage());
+			System.exit(1);
+		}
 	}
 
 	/**
@@ -47,7 +73,7 @@ public class APriori {
         StackTraceElement main = stack[stack.length - 1];
         String mainClass = main.getClassName ();
         
-        System.err.println("Usage: " + mainClass + " <workdir> <host> <t_es> <t_ec> [<yahoo appId>]");
+        System.err.println("Usage: " + mainClass + " <dataset.csv> <min_sup> <min_conf>");
         System.exit(1);
     }
 
