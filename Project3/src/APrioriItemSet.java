@@ -1,14 +1,13 @@
 import java.util.*;
-import java.io.*;
 
 public class APrioriItemSet {
 
-	String filePath;
-	float min_sup;
-	float min_conf;
+	private String filePath;
+	private float min_sup;
+	private float min_conf;
 	
 	// Large item set
-	TreeSet LargeItemSet = new TreeSet<Item>();
+	TreeSet<Item> LargeItemSet = new TreeSet<Item>();
 	
 	
 	public APrioriItemSet(String filePath, float min_sup, float min_conf) {
