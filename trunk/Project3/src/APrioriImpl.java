@@ -129,9 +129,9 @@ public class APrioriImpl {
 		//@@@ print to output file, not STDOUT!!!
 		System.out.println("==Large itemsets (min_sup=" + (min_sup*100) +"%)");
 
-		List<ItemSet> itemlist = new ArrayList<ItemSet>(largeItemSets);
-		Collections.sort(itemlist, SUPPORT_DESC_ORDER);
-		for (ItemSet itemset: itemlist) {
+		List<ItemSet> itemsetlist = new ArrayList<ItemSet>(largeItemSets);
+		Collections.sort(itemsetlist, SUPPORT_DESC_ORDER);
+		for (ItemSet itemset: itemsetlist) {
 			System.out.println(itemset + ", " + (itemset.getSupport()*100) + "%");
 		}
 	}
