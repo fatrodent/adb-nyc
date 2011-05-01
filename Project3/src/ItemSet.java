@@ -9,18 +9,9 @@
 
 import java.util.*;
 
-public class ItemSet implements Comparable<ItemSet> {
-	private TreeSet<Item> items = new TreeSet<Item>();
+public class ItemSet extends TreeSet<Item> implements Comparable<ItemSet> {
 	private float support;
 	
-	public ItemSet () {
-		
-	}
-	
-	public void add(Item i) {
-		items.add(i);
-	}
-
 	public void setSupport(float supp) {
 		this.support = supp;
 	}
@@ -28,23 +19,20 @@ public class ItemSet implements Comparable<ItemSet> {
 		return support;
 	}
 
-	public int getSize() {
-		return items.size();
-	}
 	/**
-	 * Sort by the textual representation of the items
+	 * Sort by lexical order of the items
 	 * 
 	 * @param ItemSet  ItemSet to compare with
 	 */
 	public int compareTo(ItemSet i) {
-		return items.toString().compareTo(i.items.toString());
+		return this.toString().compareTo(i.toString());
 	}
 	
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("[");
-		if (!items.isEmpty()) {
-			Iterator<Item> iter = items.iterator();
+		if (! this.isEmpty()) {
+			Iterator<Item> iter = this.iterator();
 			sb.append(iter.next());
 			while (iter.hasNext())
 				sb.append(",").append(iter.next());
