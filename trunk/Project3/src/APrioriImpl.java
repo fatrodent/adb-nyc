@@ -44,21 +44,58 @@ public class APrioriImpl {
 	public void run() throws IOException {
 		buildSet();  // initialize large itemsets from data set
 
-		// @@@ TBI - the real stuff
-		for (int k=2; ; k++) {   // @@@ TODO: add exit condition
+		for (int k=2; ; k++) {   // exit condition: empty candidate set
 			int k_minus_1 = k - 1;
+			APrioriItemSet candidates = apriori_gen(k_minus_1);
 
-			apriori_gen(k_minus_1);  // test
-			
-			break;  // test
+			// @@@ TODO
+			// forall transaction t of D:
+			//     Ct = subset(candidates, t) // Candidates contained in t
+			//     forall candidates c of Ct:
+			//         c.count++
+			// end
+			// Lk = {c element of C | c.count >= minsup}
+
+			if (candidates.isEmpty()) { // exit condition: no large k-itemsets found
+				break;
+			}
+			Lk.add(candidates);  // @@@ temporary, until the above line is implemented
 		}
 		
-		largeItemSets = new APrioriItemSet(); // Answer = Uk Lk ;
+		 // Answer = Union of all Lk
+		largeItemSets = new APrioriItemSet();
 		for (APrioriItemSet i: Lk) {
 			largeItemSets.addAll(i);
 		}
-		
+
 		toOutputFile(); // @@@ FIX THIS - save to output file, not STDOUT!
+	}
+
+	/**
+	 * Returns the superset of the set of all large k-itemsets
+	 *  
+	 * @param k_minus_1
+	 * @return candidates   set of potentially large k-itemsets
+	 */
+	public APrioriItemSet apriori_gen (int k_minus_1) {
+		APrioriItemSet p = Lk.get(k_minus_1);
+
+		// join
+		APrioriItemSet candidates = p.buildCandidateSet();
+
+		// prune
+		for (ItemSet c : candidates) {
+			for (Item i : c) {
+				ItemSet s = (ItemSet) c.clone(); // (k-1)-subset
+				s.remove(i);
+				
+				if (! p.contains(s)) { // s is not an element of Lk-1
+					candidates.remove(c);
+				}
+			}
+		}
+		System.out.println("Candidates: \n" + candidates); // @@@ DEBUG
+		return candidates;
 	}
 	
 	/**
@@ -127,13 +164,7 @@ public class APrioriImpl {
 		  public void inc () { ++value; }
 		  public int get () { return value; }
 	}
-	
-	public void apriori_gen (int k_minus_1) {
-		APrioriItemSet p = Lk.get(k_minus_1);
-		APrioriItemSet candidates = p.joinTest(); //@@@ test some more
-		System.out.println("Candidates: " + candidates);
-	}
-	
+		
 	/** 
 	 * Prints the item set and association rules to output.txt
 	 */
