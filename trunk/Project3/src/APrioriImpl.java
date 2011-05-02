@@ -255,39 +255,47 @@ public class APrioriImpl {
 			// Instantiate
 			leftSide = new ItemSet();
 			rightSide = new ItemSet();
-			// store the count to use for conf (TODO: revise)
-			rightSide.setCount(set.getCount());
 			// Adding to the left and right side
 			Iterator<Item> iter = set.descendingIterator();
 			for (int k = 0; k < set.size(); k++) {
 				Item item = iter.next();
-				System.out.println("Looking at "+item);
+				//System.out.println("Looking at "+item);
 				if (k == i) {
 					rightSide.add(item);
 				} else {
 					leftSide.add(item);
 				}
 			}
-			// store the count to use for conf (TODO: revise)
-			leftSide.setCount(set.getCount());
 			// store this rule
-			if (!leftSide.isEmpty())
+			if (!leftSide.isEmpty() && !rightSide.isEmpty()) {
+				// store the count to use for conf (=full count of set)
+				rightSide.setCount(set.getCount());
+				// store the count to use for conf (=count of corresponding set)
+				leftSide.setCount(countFor(leftSide));	
+				leftSide.setSupport(set.getSupport()); // store support for whole item set
 				rules.put(leftSide, rightSide);
+			}
 		}
 		// Remove rules below min_conf
-		pruneRules(rules);
-		
+		rules = pruneRules(rules);
 		return rules;
 	}
 	
 	/**
-	 * Gets the transaction count for item set // needs revision
+	 * Gets the transaction count for an item set 
 	 * @param itemset
 	 * @return
 	 */
 	private int countFor(ItemSet itemset) {
 		int size = itemset.size();
-		int count = Lk.get(size).get(itemset).getCount(); 
+		int count = 0;;
+		APrioriItemSet L = Lk.get(size);
+		for (ItemSet set : L) {
+			if (set.toString().equals(itemset.toString())) {
+				count = set.getCount();
+				break;
+			}	
+		}
 		return count;
 	}
 	
@@ -295,18 +303,41 @@ public class APrioriImpl {
 	 * Remove from rules those that are below min confidence
 	 * @param rules
 	 */
-	private void pruneRules(HashMap<ItemSet, ItemSet> rules) {
+	private HashMap<ItemSet, ItemSet> pruneRules(HashMap<ItemSet, ItemSet> rules) {
 		// Check if rule has confidence > min_conf
 		// If not, remove it from hashmap
+		HashMap<ItemSet, ItemSet> newRules = new HashMap<ItemSet, ItemSet>();
+		for (Map.Entry<ItemSet, ItemSet> entry : rules.entrySet()) {
+			if (confidenceFor(entry.getKey(),entry.getValue()) >= min_conf) {
+				newRules.put(entry.getKey(), entry.getValue());
+			}
+		}
+		return newRules;
 	}
 	
+	/**
+	 * Calculates confidence
+	 * @param p
+	 * @param c
+	 * @return
+	 */
+	private float confidenceFor(ItemSet p, ItemSet c) {
+		return c.getCount()/p.getCount();
+	}
+	
+	/**
+	 * Prints rules
+	 * @return
+	 */
 	private String printRules() {
 		StringBuffer str = new StringBuffer();
 		for (Map.Entry<ItemSet,ItemSet> entry : rules.entrySet()) {
 			str.append(entry.getKey());
 			str.append(" => ");
 			str.append(entry.getValue());
-			str.append("(Conf: ##%, Supp: ##%)\n");
+			float conf = confidenceFor(entry.getKey(),entry.getValue()) * 100;
+			float supp = entry.getKey().getSupport() * 100;
+			str.append("(Conf: "+conf+"%, Supp: "+supp+"%)\n");
 		}
 		return str.toString();
 	}
