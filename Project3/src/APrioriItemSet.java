@@ -1,53 +1,80 @@
+/**
+ *  A-Priori Implementation
+ *  
+ *  COMS E6111 - Project 3  04/29/2011
+ *  
+ *  @author Nicole Lee (ncl2108)
+ *  @author Laima Tazmin (lt2233)
+ */
+
 import java.util.*;
 
-public class APrioriItemSet {
+/**
+ * Implementation of Lk -- Set of large k-itemsets
+ * 
+ *
+ */
+public class APrioriItemSet extends TreeSet<ItemSet> {
+	private int k;  // @@@ Do we even care?
 
-	private String filePath;
-	private float min_sup;
-	private float min_conf;
-	
-	// Large item set
-	TreeSet<Item> LargeItemSet = new TreeSet<Item>();
-	
-	
-	public APrioriItemSet(String filePath, float min_sup, float min_conf) {
-		this.filePath = filePath;
-		this.min_sup = min_sup;
-		this.min_conf = min_conf;
-		buildSet();
+	public APrioriItemSet () {
+		this.k = 0; // arbitrary value
 	}
-	
-	/**
-	 * Algorithm
-	 */
-	private void buildSet() {
+	public APrioriItemSet (int k) {
+		this.k = k;
+	}
+	public int getK() {
+		return k;
+	}
+	public void addAll(APrioriItemSet sets) {
+		if (sets == null) return;
+		for (ItemSet s: sets) {
+			this.add(s);
+		}
+	}
+	public APrioriItemSet joinTest () {
+		//if (k==0) { return null; }  // not supported
+
+		APrioriItemSet candidates = new APrioriItemSet(); 
+
+		// join with itself...
+		for (ItemSet p : this) {
+			for (ItemSet q : this) {
+				if (p.equals(q)) continue;
+
+				Item pLast = p.last();
+				SortedSet<Item> pHeadSet = p.headSet(pLast);
+				
+				Item qLast = q.last();
+				SortedSet<Item> qHeadSet = q.headSet(qLast);
+
+				System.out.println("pLast="+pLast+", qLast="+qLast + " pLast<qLast = " + (pLast.compareTo(qLast) < 0)); //@@@ DEBUG
+				if (pHeadSet.equals(qHeadSet) && pLast.compareTo(qLast) < 0) {
+					ItemSet c = new ItemSet();
+					c.addAll(p);
+					c.add(qLast);
+					candidates.add(c);
+				}
+			}
+		}
 		
+		return candidates;
+	}
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
 		
+		List<ItemSet> itemsetlist = new ArrayList<ItemSet>(this);
+		Collections.sort(itemsetlist, SUPPORT_DESC_ORDER);
+		for (ItemSet itemset: itemsetlist) {
+			sb.append(itemset + ", " + (itemset.getSupport()*100) + "%\n");
+		}
+		return sb.toString();
 	}
 	
-	/** 
-	 * Prints the item set and association rules to output.txt
-	 */
-	public void toOutputFile() {
-// 		Example:
-//		==Large itemsets (min_sup=70%)
-//		[pen], 100%
-//		[diary], 75%
-//		[diary,pen], 75%
-//		[ink], 75%
-//		[ink,pen], 75%
-//
-//		==High-confidence association rules (min_conf=80%)
-//		[diary] => [pen] (Conf: 100.0%, Supp: 75%)
-//		[ink] => [pen] (Conf: 100.0%, Supp: 75%)
-	}
-	
-	/**
-	 * Stores information about the items in the item set
-	 */
-	public class Item {
-		float support;
-		
-	}
-	
+	// Order ItemSets in descending order of support
+	static final Comparator<ItemSet> SUPPORT_DESC_ORDER = new Comparator<ItemSet>() {
+		public int compare (ItemSet i1, ItemSet i2) {
+			return Float.compare(i2.getSupport(), i1.getSupport());
+		}
+	};
 }

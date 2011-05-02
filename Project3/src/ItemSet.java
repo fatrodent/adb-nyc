@@ -18,6 +18,13 @@ public class ItemSet extends TreeSet<Item> implements Comparable<ItemSet> {
 	public float getSupport() {
 		return support;
 	}
+	
+	public void addAll(ItemSet set) {
+		if (set == null) return;
+		for (Item i: set) {
+			this.add(i);
+		}
+	}
 
 	/**
 	 * Sort by lexical order of the items

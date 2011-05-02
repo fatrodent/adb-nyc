@@ -21,7 +21,7 @@ public class APriori {
 
 		int i = 0; // process each argument, starting from 0th
 		
-		String dataSetFile = args[i++]; // (i.e. INTEGRATED-DATASET.csv)
+		String dataSetFile = args[i++]; // e.g. INTEGRATED-DATASET.csv
 		
 		float minSupport = 0;
 	    try {
@@ -30,19 +30,28 @@ public class APriori {
 	        System.err.println("Invalid value for min_sup: " + e.getMessage());
 	        System.exit(1);
 	    }
+	    if (minSupport < 0 || minSupport > 1) {
+	    	System.err.println("min_sup must be between 0 and 1.");
+	        System.exit(1);	    	
+	    }
 	    
 		float minConfidence = 0;
 	    try {
 	    	minConfidence = Float.parseFloat(args[i++]);
 	    } catch (NumberFormatException e) {
-	        System.err.println("Invalid value for min_sup: " + e.getMessage());
+	        System.err.println("Invalid value for min_conf: " + e.getMessage());
 	        System.exit(1);
+	    }
+	    if (minConfidence < 0 || minConfidence > 1) {
+	    	System.err.println("min_conf must be between 0 and 1.");
+	        System.exit(1);	    	
 	    }
 
 		System.out.println("DEBUG: data set = " + dataSetFile);
 		System.out.println("DEBUG: min_sup  = " + minSupport);
 		System.out.println("DEBUG: min_conf = " + minConfidence);
 	    
+		// Main Algorithm
 		APrioriImpl apriori = new APrioriImpl(dataSetFile, minSupport, minConfidence);
 		try {
 			apriori.run();
