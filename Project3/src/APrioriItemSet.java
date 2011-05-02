@@ -1,5 +1,5 @@
 /**
- *  A-Priori Implementation
+ *  The set of k-itemsets (Lk)
  *  
  *  COMS E6111 - Project 3  04/29/2011
  *  
@@ -9,20 +9,18 @@
 
 import java.util.*;
 
-/**
- * Implementation of Lk -- Set of large k-itemsets
- * 
- *
- */
 public class APrioriItemSet extends TreeSet<ItemSet> {
+	private static final long serialVersionUID = 1L; // ignore
 	private int k;  // @@@ Do we even care?
-
+	
 	public APrioriItemSet () {
 		this.k = 0; // arbitrary value
 	}
+
 	public APrioriItemSet (int k) {
 		this.k = k;
 	}
+	
 	public int getK() {
 		return k;
 	}
@@ -33,13 +31,17 @@ public class APrioriItemSet extends TreeSet<ItemSet> {
 		}
 	}
 	
+	public ItemSet get(ItemSet set) {
+		return null;
+	}
+	
 	/**
 	 * Self-join to build a set of potentially large (k+1)-itemsets
 	 * 
 	 * @return candidates   Candidate itemset with 1 more element than this
 	 */
-	public APrioriItemSet buildCandidateSet () {
-		APrioriItemSet candidates = new APrioriItemSet(); 
+	public APrioriItemSet buildCandidateSet (int k) {
+		APrioriItemSet candidates = new APrioriItemSet(k); 
 
 		// self-join and create a candidate set of (k+1)-itemsets 
 		for (ItemSet p : this) {
