@@ -32,12 +32,16 @@ public class APrioriItemSet extends TreeSet<ItemSet> {
 			this.add(s);
 		}
 	}
-	public APrioriItemSet joinTest () {
-		//if (k==0) { return null; }  // not supported
-
+	
+	/**
+	 * Self-join to build a set of potentially large (k+1)-itemsets
+	 * 
+	 * @return candidates   Candidate itemset with 1 more element than this
+	 */
+	public APrioriItemSet buildCandidateSet () {
 		APrioriItemSet candidates = new APrioriItemSet(); 
 
-		// join with itself...
+		// self-join and create a candidate set of (k+1)-itemsets 
 		for (ItemSet p : this) {
 			for (ItemSet q : this) {
 				if (p.equals(q)) continue;
@@ -48,7 +52,7 @@ public class APrioriItemSet extends TreeSet<ItemSet> {
 				Item qLast = q.last();
 				SortedSet<Item> qHeadSet = q.headSet(qLast);
 
-				System.out.println("pLast="+pLast+", qLast="+qLast + " pLast<qLast = " + (pLast.compareTo(qLast) < 0)); //@@@ DEBUG
+				//System.out.println("pLast="+pLast+", qLast="+qLast + " pLast<qLast = " + (pLast.compareTo(qLast) < 0)); //@@@ DEBUG
 				if (pHeadSet.equals(qHeadSet) && pLast.compareTo(qLast) < 0) {
 					ItemSet c = new ItemSet();
 					c.addAll(p);
@@ -60,6 +64,7 @@ public class APrioriItemSet extends TreeSet<ItemSet> {
 		
 		return candidates;
 	}
+	
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		
