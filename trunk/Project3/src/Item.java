@@ -1,5 +1,5 @@
 /**
- *  A-Priori Implementation
+ *  Item for ItemSet
  *  
  *  COMS E6111 - Project 3  04/29/2011
  *  

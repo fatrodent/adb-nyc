@@ -1,5 +1,5 @@
 /**
- *  A-Priori Implementation
+ *  ItemSet stores ordered items (attributes of a row)
  *  
  *  COMS E6111 - Project 3  04/29/2011
  *  
@@ -10,15 +10,28 @@
 import java.util.*;
 
 public class ItemSet extends TreeSet<Item> implements Comparable<ItemSet> {
+	private static final long serialVersionUID = 1L; // ignore
 	private float support;
-	
+	private int count = 0; // number of transactions containing this set
+
 	public void setSupport(float supp) {
 		this.support = supp;
 	}
 	public float getSupport() {
 		return support;
 	}
-	
+	public void incrementCount() {
+		count++;
+	}
+	public void setCount(int count) {
+		this.count = count;
+	}
+	public int getCount() {
+		return count;
+	}
+	public void updateSupport(float total) {
+		support = count / total;
+	}
 	public void addAll(ItemSet set) {
 		if (set == null) return;
 		for (Item i: set) {
