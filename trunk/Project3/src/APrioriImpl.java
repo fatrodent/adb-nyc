@@ -25,10 +25,12 @@ public class APrioriImpl {
 	private String file;
 	private float min_sup;
 	private float min_conf;
-	
-	// Large item sets
-	TreeSet<ItemSet> largeItemSets = new TreeSet<ItemSet>();
-	
+
+	// Large item sets - L1 ... Lk stored as separate sets in ArrayList
+	ArrayList<APrioriItemSet> Lk = new ArrayList<APrioriItemSet>();
+
+	// Large item sets - Union of L1 ... Lk
+	APrioriItemSet largeItemSets = new APrioriItemSet();
 	
 	public APrioriImpl(String filePath, float min_sup, float min_conf){
 		this.file = filePath;
@@ -42,8 +44,20 @@ public class APrioriImpl {
 	public void run() throws IOException {
 		buildSet();  // initialize large itemsets from data set
 
-		// @@@ TBI - the real stuff  
+		// @@@ TBI - the real stuff
+		for (int k=2; ; k++) {   // @@@ TODO: add exit condition
+			int k_minus_1 = k - 1;
 
+			apriori_gen(k_minus_1);  // test
+			
+			break;  // test
+		}
+		
+		largeItemSets = new APrioriItemSet(); // Answer = Uk Lk ;
+		for (APrioriItemSet i: Lk) {
+			largeItemSets.addAll(i);
+		}
+		
 		toOutputFile(); // @@@ FIX THIS - save to output file, not STDOUT!
 	}
 	
@@ -83,6 +97,10 @@ public class APrioriImpl {
 			}
 		}
 
+		APrioriItemSet L1 = new APrioriItemSet(1); // Set of large 1-itemsets
+		Lk.add(null);  // L0 -- force a null 0th element to the ArrayList
+		Lk.add(L1);    // L1
+
 		// determine the large item sets
 		for (Map.Entry<String,MutableInt> entry: itemHash.entrySet()) {
 			String i = entry.getKey();
@@ -95,7 +113,7 @@ public class APrioriImpl {
 			ItemSet itemset = new ItemSet();
 			itemset.add(item);
 			itemset.setSupport(support);
-			largeItemSets.add(itemset);
+			L1.add(itemset);
 //			System.out.println("largeItemSets size=" + largeItemSets.size()); // @@@ DEBUG			
 //			System.out.println("DEBUG: " + itemset + ", " + (support*100) + "%"); // @@@ DEBUG		
 		}
@@ -108,6 +126,12 @@ public class APrioriImpl {
 		  int value = 1;
 		  public void inc () { ++value; }
 		  public int get () { return value; }
+	}
+	
+	public void apriori_gen (int k_minus_1) {
+		APrioriItemSet p = Lk.get(k_minus_1);
+		APrioriItemSet candidates = p.joinTest(); //@@@ test some more
+		System.out.println("Candidates: " + candidates);
 	}
 	
 	/** 
@@ -128,19 +152,6 @@ public class APrioriImpl {
 
 		//@@@ print to output file, not STDOUT!!!
 		System.out.println("==Large itemsets (min_sup=" + (min_sup*100) +"%)");
-
-		List<ItemSet> itemsetlist = new ArrayList<ItemSet>(largeItemSets);
-		Collections.sort(itemsetlist, SUPPORT_DESC_ORDER);
-		for (ItemSet itemset: itemsetlist) {
-			System.out.println(itemset + ", " + (itemset.getSupport()*100) + "%");
-		}
+		System.out.println(largeItemSets);
 	}
-
-	// Order ItemSets in descending order of support
-	static final Comparator<ItemSet> SUPPORT_DESC_ORDER = new Comparator<ItemSet>() {
-		public int compare (ItemSet i1, ItemSet i2) {
-			return Float.compare(i2.getSupport(), i1.getSupport());
-		}
-	};
-	
 }
