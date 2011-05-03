@@ -11,19 +11,10 @@ import java.util.*;
 
 public class APrioriItemSet extends TreeSet<ItemSet> {
 	private static final long serialVersionUID = 1L; // ignore
-	private int k;  // @@@ Do we even care?
-	
+
 	public APrioriItemSet () {
-		this.k = 0; // arbitrary value
 	}
 
-	public APrioriItemSet (int k) {
-		this.k = k;
-	}
-	
-	public int getK() {
-		return k;
-	}
 	public void addAll(APrioriItemSet sets) {
 		if (sets == null) return;
 		for (ItemSet s: sets) {
@@ -41,7 +32,8 @@ public class APrioriItemSet extends TreeSet<ItemSet> {
 	 * @return candidates   Candidate itemset with 1 more element than this
 	 */
 	public APrioriItemSet buildCandidateSet (int k) {
-		APrioriItemSet candidates = new APrioriItemSet(k); 
+		//APrioriItemSet candidates = new APrioriItemSet(k); 
+		APrioriItemSet candidates = new APrioriItemSet(); 		
 
 		// self-join and create a candidate set of (k+1)-itemsets 
 		for (ItemSet p : this) {

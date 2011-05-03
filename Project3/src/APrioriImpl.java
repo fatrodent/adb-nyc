@@ -106,15 +106,20 @@ public class APrioriImpl {
 	 * @param p
 	 */
 	private void pruneCandidates (APrioriItemSet candidates, APrioriItemSet p) {
+		HashSet<ItemSet> removalSet = new HashSet<ItemSet> (); // stage for removal
+		
 		for (ItemSet c : candidates) {
 			for (Item i : c) {
 				ItemSet s = (ItemSet) c.clone(); // (k-1)-subset
 				s.remove(i);
 				if (! p.contains(s)) { // s is not an element of Lk-1
-					candidates.remove(c);
+					// don't remove inside loop because of concurrent edit exception
+					//candidates.remove(c);
+					removalSet.add(c);
 				}
 			}
 		}
+		candidates.removeAll(removalSet);
 	}
 
 	/**
@@ -179,19 +184,19 @@ public class APrioriImpl {
 		// use a library to parse the CSV file
 		CSVReader reader = new CSVReader(new FileReader(file));
 		String [] line;
+		int linenum = 0;
 		while((line = reader.readNext()) != null) {
 			// store each transaction
 			TreeSet<String> transaction = new TreeSet<String>();
 			for (String i: line) {
 				if (i == null) continue;     // being paranoid, don't think null can occur in a csv file
-				i.trim();                    // eliminate leading and trailing spaces
+				i=i.trim();                  // eliminate leading and trailing spaces
 				if (i.equals("")) continue;  // skip blank entries
 				// add to transaction
 				transaction.add(i);
 				//System.out.print(i+" ");
 			}
 			transactions.add(transaction);
-			//System.out.println();
 		}
 		// store number for later
 		numberOfTransactions = transactions.size();
@@ -219,7 +224,7 @@ public class APrioriImpl {
 				//System.out.println("   ITEM "+i+" occurence=" + itemHash.get(i).get()); // @@@ DEBUG
 			}
 		}
-		APrioriItemSet L1 = new APrioriItemSet(1); // Set of large 1-itemsets
+		APrioriItemSet L1 = new APrioriItemSet(); // Set of large 1-itemsets
 		// determine the large item sets
 		for (Map.Entry<String,MutableInt> entry: itemHash.entrySet()) {
 			String i = entry.getKey();
@@ -322,7 +327,10 @@ public class APrioriImpl {
 	 * @return
 	 */
 	private float confidenceFor(ItemSet p, ItemSet c) {
-		return c.getCount()/p.getCount();
+		//float conf = (float) c.getCount()/p.getCount();
+		//System.out.println("DEBUG: conf(" + p + "=>"+c+")=" + c.getCount() + "/" +p.getCount()+"="+ conf);
+		//return conf;
+		return (float) c.getCount()/p.getCount();
 	}
 	
 	/**
@@ -331,6 +339,7 @@ public class APrioriImpl {
 	 */
 	private String printRules() {
 		StringBuffer str = new StringBuffer();
+		// @@@ TODO: Need to sort in decreasing order of confidence
 		for (Map.Entry<ItemSet,ItemSet> entry : rules.entrySet()) {
 			str.append(entry.getKey());
 			str.append(" => ");
@@ -340,65 +349,6 @@ public class APrioriImpl {
 			str.append("(Conf: "+conf+"%, Supp: "+supp+"%)\n");
 		}
 		return str.toString();
-	}
-	
-	/**
-	 * Reads the CSV file, and build the large 1-itemsets
-	 * @throws IOException 
-	 */
-	public void buildSet() throws IOException {
-		int transcnt = 0;  // Count the total number of transactions
-
-		// Count the number of transactions containing an item
-		HashMap<String,MutableInt> itemHash = new HashMap<String,MutableInt>();
-
-		// use a library to parse the CSV file
-		CSVReader reader = new CSVReader(new FileReader(file));
-		String [] line;
-		while((line = reader.readNext()) != null) {
-			++transcnt;    // each csv line is one transaction
-
-			//System.out.println("LINE: "); // @@@ DEBUG
-			// count the items
-			for (String i: line) {
-				if (i == null) continue;     // being paranoid, don't think null can occur in a csv file
-				i.trim();                    // eliminate leading and trailing spaces
-				if (i.equals("")) continue;  // skip blank entries
-				
-				// Count the number of transactions that item occurs in
-				// Assumes that items never appear more than once in a transaction
-				MutableInt value = itemHash.get(i);
-				if (value == null) {
-					value = new MutableInt();
-					itemHash.put(i, value);
-				} else {
-					value.inc();
-				}
-				//System.out.println("   ITEM "+i+" occurence=" + itemHash.get(i).get()); // @@@ DEBUG
-			}
-		}
-
-		APrioriItemSet L1 = new APrioriItemSet(1); // Set of large 1-itemsets
-		Lk.add(null);  // L0 -- force a null 0th element to the ArrayList
-		Lk.add(L1);    // L1
-
-		// determine the large item sets
-		for (Map.Entry<String,MutableInt> entry: itemHash.entrySet()) {
-			String i = entry.getKey();
-			float item_occurence = entry.getValue().get();  // cast to float to perform fp arithmetic next
-			float support = item_occurence / transcnt;
-			if (support < min_sup) continue; // skip small item sets
-			
-			// Identify large 1-item sets
-			Item item = new Item(i);
-			ItemSet itemset = new ItemSet();
-			itemset.add(item);
-			itemset.setSupport(support);
-			L1.add(itemset);
-//			System.out.println("largeItemSets size=" + largeItemSets.size()); // @@@ DEBUG			
-//			System.out.println("DEBUG: " + itemset + ", " + (support*100) + "%"); // @@@ DEBUG		
-		}
-
 	}
 
 	// A relatively fast increment counter 
