@@ -17,6 +17,7 @@
 
 import java.io.*;
 import java.util.*;
+
 import au.com.bytecode.opencsv.*;
 
 public class APrioriImpl {
@@ -246,7 +247,7 @@ public class APrioriImpl {
 	
 	
 	/**
-	 * Generates rules
+	 * Generates rules for an item set
 	 * @param set
 	 * @param i_plus_one
 	 * @return
@@ -277,7 +278,9 @@ public class APrioriImpl {
 				rightSide.setCount(set.getCount());
 				// store the count to use for conf (=count of corresponding set)
 				leftSide.setCount(countFor(leftSide));	
-				leftSide.setSupport(set.getSupport()); // store support for whole item set
+				// store support for whole item set in left side
+				leftSide.setSupport(set.getSupport()); 
+				// store
 				rules.put(leftSide, rightSide);
 			}
 		}
@@ -293,7 +296,7 @@ public class APrioriImpl {
 	 */
 	private int countFor(ItemSet itemset) {
 		int size = itemset.size();
-		int count = 0;;
+		int count = 0;
 		APrioriItemSet L = Lk.get(size);
 		for (ItemSet set : L) {
 			if (set.toString().equals(itemset.toString())) {
@@ -310,7 +313,7 @@ public class APrioriImpl {
 	 */
 	private HashMap<ItemSet, ItemSet> pruneRules(HashMap<ItemSet, ItemSet> rules) {
 		// Check if rule has confidence > min_conf
-		// If not, remove it from hashmap
+		// If not, ignore
 		HashMap<ItemSet, ItemSet> newRules = new HashMap<ItemSet, ItemSet>();
 		for (Map.Entry<ItemSet, ItemSet> entry : rules.entrySet()) {
 			if (confidenceFor(entry.getKey(),entry.getValue()) >= min_conf) {
@@ -321,12 +324,12 @@ public class APrioriImpl {
 	}
 	
 	/**
-	 * Calculates confidence
+	 * Calculates confidence for two item sets that are in a rule
 	 * @param p
 	 * @param c
 	 * @return
 	 */
-	private float confidenceFor(ItemSet p, ItemSet c) {
+	private static float confidenceFor(ItemSet p, ItemSet c) {
 		//float conf = (float) c.getCount()/p.getCount();
 		//System.out.println("DEBUG: conf(" + p + "=>"+c+")=" + c.getCount() + "/" +p.getCount()+"="+ conf);
 		//return conf;
@@ -334,22 +337,37 @@ public class APrioriImpl {
 	}
 	
 	/**
-	 * Prints rules
+	 * Represents the rules into a String in decreasing order of confidence
 	 * @return
 	 */
-	private String printRules() {
+	private String rulesToString() {
 		StringBuffer str = new StringBuffer();
-		// @@@ TODO: Need to sort in decreasing order of confidence
+		// Store rules in sorted order
+		List<ItemSet[]> sortedList = new ArrayList<ItemSet[]>();
 		for (Map.Entry<ItemSet,ItemSet> entry : rules.entrySet()) {
-			str.append(entry.getKey());
-			str.append(" => ");
-			str.append(entry.getValue());
-			float conf = confidenceFor(entry.getKey(),entry.getValue()) * 100;
-			float supp = entry.getKey().getSupport() * 100;
-			str.append("(Conf: "+conf+"%, Supp: "+supp+"%)\n");
+			ItemSet[] r = {entry.getKey(), entry.getValue()};
+			sortedList.add(r);
+		}
+		Collections.sort(sortedList, CONF_DESC_ORDER);
+		// Output
+		for (ItemSet[] rule : sortedList) {
+			float conf = confidenceFor(rule[0],rule[1]) * 100;
+			float supp = rule[0].getSupport() * 100;
+			str.append(rule[0]+" => "+rule[1]);
+			str.append(" (Conf: "+conf+"%, Supp: "+supp+"%)\n");	
 		}
 		return str.toString();
 	}
+	
+	/**
+	 * Comparator for rules based on confidence
+	 * @return
+	 */
+	static final Comparator<ItemSet[]> CONF_DESC_ORDER = new Comparator<ItemSet[]>() {
+		public int compare(ItemSet[] a, ItemSet[] b) {
+			return Float.compare(confidenceFor(b[0],b[1]), confidenceFor(a[0],a[1]));
+		}
+	};	
 
 	// A relatively fast increment counter 
 	// Source:  http://stackoverflow.com/questions/81346/most-efficient-way-to-increment-a-map-value-in-java
@@ -374,12 +392,23 @@ public class APrioriImpl {
 		//		==High-confidence association rules (min_conf=80%)
 		//		[diary] => [pen] (Conf: 100.0%, Supp: 75%)
 		//		[ink] => [pen] (Conf: 100.0%, Supp: 75%)
-
-		//@@@ print to output file, not STDOUT!!!
-		System.out.println("==Large itemsets (min_sup=" + (min_sup*100) +"%)");
-		System.out.println(largeItemSets);
 		
-		System.out.println("==High-confidence association rules (min_conf="+ (min_conf*100) +"%)");
-		System.out.println(printRules());
+		String filename = "output.txt";
+		StringBuffer sb = new StringBuffer();
+		sb.append("==Large itemsets (min_sup=" + (min_sup*100) +"%)\n");
+		sb.append(largeItemSets.toString()+"\n");
+		sb.append("==High-confidence association rules (min_conf="+ (min_conf*100) +"%)\n");
+		sb.append(rulesToString());
+		System.out.println(sb); // @@ for quick debugging
+	
+		// Write to file
+//		try {
+//			BufferedWriter out = new BufferedWriter(new FileWriter(filename));
+//			out.write(sb.toString());
+//			out.close();
+//		} catch (Exception e) {
+//			System.err.println("Could not write "+filename+":\n"+e.getMessage());
+//			System.exit(1);
+//		}
 	}
 }
