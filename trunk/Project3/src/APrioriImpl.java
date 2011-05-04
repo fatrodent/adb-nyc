@@ -97,7 +97,7 @@ public class APrioriImpl {
 		APrioriItemSet candidates = p.buildCandidateSet(k_minus_1+1);
 		// prune
 		pruneCandidates(candidates, p);
-		System.out.println("Candidates: \n" + candidates); // @@@ DEBUG
+		//System.out.println("Candidates: \n" + candidates); // @@@ DEBUG
 		return candidates;
 	}
 	
