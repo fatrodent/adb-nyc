@@ -47,9 +47,10 @@ public class APriori {
 	        System.exit(1);	    	
 	    }
 
-		System.out.println("DEBUG: data set = " + dataSetFile);
-		System.out.println("DEBUG: min_sup  = " + minSupport);
-		System.out.println("DEBUG: min_conf = " + minConfidence);
+		System.out.println("data set = " + dataSetFile);
+		System.out.println("min_sup  = " + minSupport);
+		System.out.println("min_conf = " + minConfidence);
+		System.out.println();
 	    
 		// Main Algorithm
 		APrioriImpl apriori = new APrioriImpl(dataSetFile, minSupport, minConfidence);
